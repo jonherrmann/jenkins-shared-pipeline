@@ -80,7 +80,7 @@ def call(body) {
             stage('archive upload ' + '[' + buildType + ']') {
                 if (buildType != 'RELEASE') {
                     if (env.DEPLOYMENT != 'DRY-RUN') {
-                        if (Git.noNewWorkingVersion() || env.DEPLOYMENT == 'FORCE') {
+                        if (new Git().noNewWorkingVersion() || env.DEPLOYMENT == 'FORCE') {
                             sh './gradlew uploadArchives'
                         } else {
                             echo 'Snapshot deployment was skipped due to the previous automatic commit.'
@@ -96,7 +96,7 @@ def call(body) {
             stage('release') {
                 if (buildType == 'RELEASE') {
                     if (env.DEPLOYMENT != 'DRY-RUN') {
-                        if (Git.noNewWorkingVersion() || env.DEPLOYMENT == 'FORCE') {
+                        if (new Git().noNewWorkingVersion() || env.DEPLOYMENT == 'FORCE') {
                             sh './gradlew release'
                         } else {
                             echo 'The release was skipped due to the previous automatic commit.'
