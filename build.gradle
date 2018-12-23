@@ -1,0 +1,41 @@
+group 'de.jonherrmann.jenkins.pipeline'
+version '1.0.0-SNAPSHOT'
+
+apply plugin: 'groovy'
+
+sourceCompatibility = 1.8
+
+sourceSets {
+    main {
+        groovy {
+            srcDirs = [
+                    "${project.rootDir.toString()}/src",
+                    "${project.rootDir.toString()}/vars"
+            ]
+        }
+    }
+    test {
+        groovy {
+            srcDir "${project.rootDir.toString()}/test"
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://repo.jenkins-ci.org/releases/"
+    }
+}
+
+dependencies {
+    compileOnly 'com.cloudbees:groovy-cps:1.24'
+    compileOnly('org.jenkins-ci.main:jenkins-core:2.155') {
+        transitive = false
+    }
+
+    compile 'org.codehaus.groovy:groovy-all:2.4.12'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-all:1.9.5'
+}
