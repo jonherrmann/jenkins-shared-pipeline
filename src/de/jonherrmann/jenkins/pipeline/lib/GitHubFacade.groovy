@@ -1,19 +1,3 @@
-/*
- * Copyright 2010-2018 interactive instruments GmbH
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package de.jonherrmann.jenkins.pipeline.lib
 
 import hudson.AbortException
@@ -56,46 +40,8 @@ class GitHubFacade {
         this.autoUpdateCommitMessagePattern = autoUpdateCommitMessagePattern
     }
 
-    static class CommitStatusSubmitter {
-        private boolean finalStatusSubmitted = false
-        private final GHRepository repository
-        private final String sha1
-        private final String context
-        private final String url
-
-        CommitStatusSubmitter(GHRepository repository, String sha1, String context, String url) {
-            this.repository = repository
-            this.sha1 = sha1
-            this.context = context
-            this.url = url
-            repository.createCommitStatus(sha1, GHCommitState.PENDING, url, "Building...", context)
-        }
-
-        void updatePending(final String description) {
-            repository.createCommitStatus(sha1, GHCommitState.PENDING, url, description, context)
-        }
-
-        void submitSuccess(final String description) {
-            if(!finalStatusSubmitted) {
-                finalStatusSubmitted = true
-                repository.createCommitStatus(sha1, GHCommitState.SUCCESS, url, description, context)
-            }
-        }
-
-        void submitFailure(final String description) {
-            finalStatusSubmitted = true
-            repository.createCommitStatus(sha1, GHCommitState.FAILURE, url, description, context)
-        }
-
-        void destroy() {
-            if(!finalStatusSubmitted) {
-                repository.createCommitStatus(sha1, GHCommitState.ERROR, url, "An unknown error occurred during the build process", context)
-            }
-        }
-    }
-
-    CommitStatusSubmitter createCommitStatusSubmitter(String context, String url) {
-        return new CommitStatusSubmitter(repository, getLastCachedCommit().getSHA1(), context, url)
+    GitHubCommitStatusSubmitter createCommitStatusSubmitter(String context, String url) {
+        return new GitHubCommitStatusSubmitter(repository, getLastCachedCommit().getSHA1(), context, url)
     }
 
     GHCommit getLastCachedCommit() {

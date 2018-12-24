@@ -28,14 +28,14 @@ class GitHubFacadeTest {
         submitter.submitSuccess("OK")
         submitter.destroy()
     }
-    */
 
     @Test
     void testCommitStatus() {
         final GitHubFacade facade = new GitHubFacade(
-                "jonherrmann", "06d294d9cbdfcb95200757909d5d4af6f4de92ab",
+                null, null,
                 "jonherrmann", "jenkins-shared-pipeline")
 
         facade.createDraftRelease(new SemVersion("0.0.4"), "/Users/herrmann/Projects/LoD-Prüftool/src/etf-bsxtd/build/libs/etf-bsxtd-1.0.6.jar")
     }
+    */
 }

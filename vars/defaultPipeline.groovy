@@ -45,7 +45,7 @@ def call(body) {
         gitHubConnector = new GitHubFacade(env.USERNAME, env.PASSWORD, pipelineParams.githubOrganisation, namingConvention.projectName())
     }
 
-    final GitHubFacade.CommitStatusSubmitter statusSubmitter = gitHubConnector.createCommitStatusSubmitter(
+    final GitHubCommitStatusSubmitter statusSubmitter = gitHubConnector.createCommitStatusSubmitter(
             pipelineParams.commitStatusContext, pipelineParams.commitStatusUrl ? pipelineParams.commitStatusUrl : env.BUILD_URL)
 
     final String gitRepoUrl = 'https://github.com/' + pipelineParams.githubOrganisation + '/' + namingConvention.projectName()
