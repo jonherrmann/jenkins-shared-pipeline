@@ -13,13 +13,15 @@ enum VersionLevel {
  */
 class SemVersion implements Serializable {
 
+    final static INITIAL_VERSION = new SemVersion(0,0,1,"SNAPSHOT")
+
     /**
      * MAJRO.MINOR.BUGFIX.BUILD_VERSION-LABEL
      * where BUGFIX is optional,
      * BUILD_VERSION is ignored
      * and LABEL is optional
      */
-    final static Pattern versionPattern = Pattern.compile("(\\d+)\\.(\\d+)(\\.\\d+)?(\\.\\d+)?(-[A-Z]*)?")
+    final static Pattern versionPattern = Pattern.compile("(\\d+)\\.(\\d+)(\\.\\d+)?(\\.\\d+)?(-[A-Z|a-z]+(\\.\\d+)?)?")
 
     final int major
     final int minor
@@ -31,7 +33,7 @@ class SemVersion implements Serializable {
         if (!versionStr) throw new IllegalArgumentException("Version number not set")
         if (!versionMatcher.matches()) {
             throw new AbortException(
-                    "Invalid version '$versionStr' format. The expected format is MAJOR.MINOR.PATCH.")
+                    "Invalid version '$versionStr' format. The expected format is MAJOR.MINOR.PATCH .")
         }
         try {
             major = Integer.parseInt(versionMatcher.group(1))
@@ -105,11 +107,19 @@ class SemVersion implements Serializable {
         return this == version || major == version.major && this.minor <= version.minor
     }
 
+    boolean isReleaseVersion() {
+        return label==""
+    }
+
+    String toStringWithoutLabel() {
+        return "$major.$minor.$patch"
+    }
+
     @Override
     String toString() {
         if (this.label) {
             return "$major.$minor.$patch-$label"
         }
-        return "$major.$minor.$patch"
+        return toStringWithoutLabel()
     }
 }

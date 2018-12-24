@@ -8,6 +8,11 @@ def call(body) {
     body.delegate = pipelineParams
     body()
 
+    assert pipelineParams.projectPrefix
+    assert pipelineParams.gitCredentialsId
+    assert pipelineParams.githubOrganisation
+    assert pipelineParams.commitStatusContext
+
     def namingConvention = new NamingConvention(pipelineParams.projectPrefix, env.JOB_NAME)
     def buildType = namingConvention.buildType()
 
@@ -35,78 +40,107 @@ def call(body) {
         }
     }
 
-    String gitRepoUrl = 'https://github.com/' + pipelineParams.githubOrganisation + '/' + namingConvention.projectName()
+    final GitHubFacade gitHubConnector
+    withCredentials([usernamePassword(credentialsId: pipelineParams.gitCredentialsId, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+        gitHubConnector = new GitHubFacade(env.USERNAME, env.PASSWORD, pipelineParams.githubOrganisation, namingConvention.projectName())
+    }
+
+    final GitHubFacade.CommitStatusSubmitter statusSubmitter = gitHubConnector.createCommitStatusSubmitter(
+            pipelineParams.commitStatusContext, pipelineParams.commitStatusUrl ? pipelineParams.commitStatusUrl : env.BUILD_URL)
+
+    final String gitRepoUrl = 'https://github.com/' + pipelineParams.githubOrganisation + '/' + namingConvention.projectName()
 
     timestamps {
         node() {
-            stage('checkout') {
-                checkout([$class                           : 'GitSCM',
-                          branches                         : remBranches,
-                          doGenerateSubmoduleConfigurations: false,
-                          extensions                       : [
-                                  [$class: 'LocalBranch', localBranch: checkOutBranches],
-                                  [$class: 'CleanBeforeCheckout']
-                          ],
-                          submoduleCfg                     : [],
-                          userRemoteConfigs                : [[credentialsId: pipelineParams.gitCredentialsId, url: gitRepoUrl]]
-                ])
-            }
-
-            stage('build') {
-                sh './gradlew init'
-                sh './gradlew clean'
-                sh './gradlew assemble'
-            }
-
-            stage('test') {
-                try {
-                    sh './gradlew build test'
-                } finally {
-                    junit '**/build/test-results/test/**.xml'
-                    archiveArtifacts '**/build/test-results/test/**'
+            try {
+                stage('checkout') {
+                    checkout([$class                           : 'GitSCM',
+                              branches                         : remBranches,
+                              doGenerateSubmoduleConfigurations: false,
+                              extensions                       : [
+                                      [$class: 'LocalBranch', localBranch: checkOutBranches],
+                                      [$class: 'CleanBeforeCheckout']
+                              ],
+                              submoduleCfg                     : [],
+                              userRemoteConfigs                : [[credentialsId: pipelineParams.gitCredentialsId, url: gitRepoUrl]]
+                    ])
                 }
-            }
 
-
-            stage('SonarQube analysis') {
-                if(pipelineParams.runSonar == true && env.DEPLOYMENT != 'DRY-RUN' && (buildType == 'RELEASE' || buildType == 'SNAPSHOT')) {
-                    withSonarQubeEnv('SonarCloud') {
-                        sh './gradlew --info sonarqube'
+                stage('build') {
+                    sh './gradlew init'
+                    sh './gradlew clean'
+                    try {
+                        sh './gradlew assemble'
+                    }catch(e) {
+                        statusSubmitter.submitFailure("Build failed")
                     }
                 }
-            }
+
+                stage('test') {
+                    statusSubmitter.updatePending("Testing...")
+                    try {
+                        sh './gradlew build test'
+                    }catch(e) {
+                        statusSubmitter.submitFailure("Testing failed")
+                    } finally {
+                        junit '**/build/test-results/test/**.xml'
+                        archiveArtifacts '**/build/test-results/test/**'
+                    }
+                }
 
 
-            stage('archive upload ' + '[' + buildType + ']') {
+                stage('analyse with SonarQube') {
+                    if (pipelineParams.runSonar == true && env.DEPLOYMENT != 'DRY-RUN' && (buildType == 'RELEASE' || buildType == 'SNAPSHOT')) {
+                        withSonarQubeEnv('SonarCloud') {
+                            sh './gradlew --info sonarqube'
+                        }
+                    } else {
+                        echo 'SonarQube analysis skipped.'
+                    }
+                }
+
+
                 if (buildType != 'RELEASE') {
-                    if (env.DEPLOYMENT != 'DRY-RUN') {
-                        if (new Git().noNewWorkingVersion() || env.DEPLOYMENT == 'FORCE') {
-                            sh './gradlew uploadArchives'
+                    stage('upload archive ' + '[' + buildType + ']') {
+                        if (env.DEPLOYMENT != 'DRY-RUN') {
+                            if (!gitHubConnector.wasLastCommitInitiatedByUpdate() || env.DEPLOYMENT == 'FORCE') {
+                                sh './gradlew uploadArchives'
+                                statusSubmitter.submitSuccess("Deployed")
+                            } else {
+                                echo 'Snapshot deployment was skipped due to the previous automatic commit.'
+                            }
                         } else {
-                            echo 'Snapshot deployment was skipped due to the previous automatic commit.'
+                            echo 'Snapshot deployment was skipped due to DRY-RUN mode.'
                         }
-                    } else {
-                        echo 'Snapshot deployment was skipped due to DRY-RUN mode.'
                     }
                 } else {
-                    echo 'Snapshot deployment was skipped due to the release.'
+                    stage('release') {
+                        if (env.DEPLOYMENT != 'DRY-RUN') {
+                            if (!gitHubConnector.wasLastCommitInitiatedByUpdate() || env.DEPLOYMENT == 'FORCE') {
+                                sh './gradlew release'
+                                statusSubmitter.submitSuccess("Released")
+                            } else {
+                                echo 'The release was skipped due to the previous automatic commit.'
+                            }
+                        } else {
+                            echo 'Release was skipped due to DRY-RUN mode.'
+                        }
+                    }
                 }
-            }
 
-            stage('release') {
-                if (buildType == 'RELEASE') {
-                    if (env.DEPLOYMENT != 'DRY-RUN') {
-                        if (new Git().noNewWorkingVersion() || env.DEPLOYMENT == 'FORCE') {
-                            sh './gradlew release'
-                        } else {
-                            echo 'The release was skipped due to the previous automatic commit.'
-                        }
-                    } else {
-                        echo 'Release was skipped due to DRY-RUN mode.'
+                statusSubmitter.submitSuccess(null)
+
+                if (env.DEPLOYMENT != 'DRY-RUN') {
+                    stage('publish on GitHub') {
+                        def releasedVersion = gitHubConnector.getLastReleaseOrInitialVersion()
+                        final String pattern = "**/build/libs/*${releasedVersion}.war **/build/libs/*${releasedVersion}.jar"
+                        def files = new FileNameFinder().getFileNames(env.WORKSPACE, pattern)
+
+                        gitHubConnector.createDraftRelease(releasedVersion, files)
                     }
-                } else {
-                    echo 'Release skipped.'
                 }
+            } finally {
+                statusSubmitter.destroy()
             }
         }
     }

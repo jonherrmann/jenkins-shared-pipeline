@@ -41,6 +41,17 @@ class SemVersionTest {
     }
 
     @Test
+    void testVersionWithRCLabel() {
+        def version = new SemVersion("1.2.3-rc.4")
+
+        assert version.major == 1
+        assert version.minor == 2
+        assert version.patch == 3
+        assert version.label == "rc.4"
+        assert version.toString() == "1.2.3-rc.4"
+    }
+
+    @Test
     void testVersionWithReleaseLabel() {
         def version = new SemVersion("1.2.3-RELEASE")
 
@@ -107,6 +118,15 @@ class SemVersionTest {
     }
 
     @Test
+    void testIsHigherThanLabel() {
+        def version1 = new SemVersion("1.2.3")
+        def version2 = new SemVersion("1.2.3-RC.4")
+
+        assert version1.isHigherThan(version2)
+        assert !version2.isHigherThan(version1)
+    }
+
+    @Test
     void testIsHigherThan() {
         def version1 = new SemVersion("1.2.3.4-SNAPSHOT")
         def version2 = new SemVersion("1.2.3.4-SNAPSHOT")
@@ -128,7 +148,6 @@ class SemVersionTest {
 
         assert !version4.isHigherThan(version5)
         assert version5.isHigherThan(version4)
-
     }
 
     @Test
