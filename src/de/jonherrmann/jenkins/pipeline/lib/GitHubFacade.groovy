@@ -28,9 +28,9 @@ class GitHubFacade {
             autoUpdateCommitMessagePattern) {
         final GitHub github
         if(githubLogin && githubPassword) {
-            github = GitHub.connectUsingPassword(githubLogin, githubPassword)
+            github  = new GitHubBuilder().withPassword(githubLogin, githubPassword).build()
         }else{
-            github = GitHub.connectAnonymously()
+            github = new GitHubBuilder().build();
         }
         assert githubOrganisationName
         assert githubRepositoryName
