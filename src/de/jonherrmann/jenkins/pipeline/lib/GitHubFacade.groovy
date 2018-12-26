@@ -1,5 +1,6 @@
 package de.jonherrmann.jenkins.pipeline.lib
 
+import com.cloudbees.groovy.cps.NonCPS
 import hudson.AbortException
 import org.kohsuke.github.*
 
@@ -8,11 +9,11 @@ import java.util.regex.Pattern
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
  */
-class GitHubFacade {
+class GitHubFacade implements Serializable {
 
-    private final GHRepository repository
+    private final GitHubRepository rw
     private final Pattern autoUpdateCommitMessagePattern
-    private GHCommit lastCommit
+    private transient GHCommit lastCommit
 
     GitHubFacade(githubLogin, githubPassword, githubOrganisationName, githubRepositoryName) {
         this(githubLogin, githubPassword,
@@ -26,27 +27,19 @@ class GitHubFacade {
             githubOrganisationName,
             githubRepositoryName,
             autoUpdateCommitMessagePattern) {
-        final GitHub github
-        if(githubLogin && githubPassword) {
-            github  = new GitHubBuilder().withPassword(githubLogin, githubPassword).build()
-        }else{
-            github = new GitHubBuilder().build();
-        }
-        assert githubOrganisationName
-        assert githubRepositoryName
         assert autoUpdateCommitMessagePattern
-        println "Remaining API requests: ${github.getRateLimit().remaining}"
-        repository = github.getRepository(githubOrganisationName+"/"+githubRepositoryName)
         this.autoUpdateCommitMessagePattern = autoUpdateCommitMessagePattern
+        this.rw = new GitHubRepository(githubLogin, githubPassword, githubOrganisationName, githubRepositoryName)
     }
 
     GitHubCommitStatusSubmitter createCommitStatusSubmitter(String context, String url) {
-        return new GitHubCommitStatusSubmitter(repository, getLastCachedCommit().getSHA1(), context, url)
+        return new GitHubCommitStatusSubmitter(rw, getLastCachedCommit().getSHA1(), context, url)
     }
 
+    @NonCPS
     GHCommit getLastCachedCommit() {
         if(lastCommit == null) {
-            lastCommit = repository?.listCommits()?._iterator(1)?.next()
+            lastCommit = rw.repository?.listCommits()?._iterator(1)?.next()
         }
         return lastCommit
     }
@@ -75,7 +68,7 @@ class GitHubFacade {
      * @return semantic version or an initial version placeholder
      */
     SemVersion getLastTaggedVersionOrInitialVersion() {
-        final String latestTagName = repository?.listTags()?._iterator(1)?.next()?.name
+        final String latestTagName = rw.repository?.listTags()?._iterator(1)?.next()?.name
         try {
             return new SemVersion(latestTagName)
         }catch(ign) { }
@@ -88,7 +81,7 @@ class GitHubFacade {
      * @return semantic version or an initial version placeholder
      */
     SemVersion getLastReleaseOrInitialVersion() {
-        final String latestReleaseName = repository?.latestRelease?.tagName
+        final String latestReleaseName = rw.repository?.latestRelease?.tagName
         try {
             return new SemVersion(latestReleaseName)
         }catch(ign) { }
@@ -125,7 +118,7 @@ class GitHubFacade {
                     "There is already a release '$latestVersion' with the same version number.")
         }
 
-        final GHRelease release = repository.createRelease(versionStr)
+        final GHRelease release = rw.repository.createRelease(versionStr)
                 .name(versionStr+" release"+ (!version.isReleaseVersion() ? " candidate" : ""))
                 .draft(true)
                 .prerelease(!version.isReleaseVersion())
@@ -152,7 +145,7 @@ class GitHubFacade {
     void attachDraftRelease(final SemVersion version, String...files) {
         assert version != null
         final String versionStr = version.toStringWithoutLabel()
-        final GHRelease release = repository.getReleaseByTagName(versionStr)
+        final GHRelease release = rw.repository.getReleaseByTagName(versionStr)
         if(release == null) {
             throw new AbortException(
                     "Tag '$latestVersion' not found")

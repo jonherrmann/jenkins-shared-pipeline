@@ -69,6 +69,7 @@ def call(body) {
                 stage('build') {
                     sh './gradlew init'
                     sh './gradlew clean'
+                    statusSubmitter.updatePending("Building...")
                     try {
                         sh './gradlew assemble'
                     }catch(e) {
