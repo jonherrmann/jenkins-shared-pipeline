@@ -2,7 +2,7 @@ package de.jonherrmann.jenkins.pipeline.lib
 
 import com.cloudbees.groovy.cps.NonCPS
 
-class NamingConvention {
+class NamingConvention implements Serializable {
 
     final String jobName
     final String prefix
