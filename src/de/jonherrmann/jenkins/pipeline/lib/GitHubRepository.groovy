@@ -8,7 +8,7 @@ import org.kohsuke.github.GitHub
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
  */
 class GitHubRepository implements Serializable {
-    private transient GHRepository repository
+    private transient GHRepository r
     private final String githubLogin
     private final String githubPassword
     private final String githubOrganisationName
@@ -26,16 +26,16 @@ class GitHubRepository implements Serializable {
 
     @NonCPS
     GHRepository getRepository() {
-        if(repository == null) {
+        if(this.r == null) {
             final GitHub github
             if(githubLogin && githubPassword) {
                 github = GitHub.connectUsingPassword(githubLogin, githubPassword)
             }else{
                 github = GitHub.connectAnonymously()
             }
-            echo "Remaining API requests: ${github.getRateLimit().remaining}"
-            repository = github.getRepository(githubOrganisationName+"/"+githubRepositoryName)
+            // echo "Remaining API requests: ${github.getRateLimit().remaining}"
+            this.r = github.getRepository(githubOrganisationName+"/"+githubRepositoryName)
         }
-        return repository
+        return this.r
     }
 }
