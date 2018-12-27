@@ -22,7 +22,6 @@ class SemVersion implements Serializable {
      * BUILD_VERSION is ignored
      * and LABEL is optional
      */
-    final static Pattern versionPattern = Pattern.compile("(\\d+)\\.(\\d+)(\\.\\d+)?(\\.\\d+)?(-[A-Z|a-z]+(\\.\\d+)?)?")
 
     final int major
     final int minor
@@ -30,7 +29,7 @@ class SemVersion implements Serializable {
     final String label
 
     SemVersion(String versionStr) {
-        final Matcher versionMatcher = versionPattern.matcher(versionStr)
+        final Matcher versionMatcher = Pattern.compile("(\\d+)\\.(\\d+)(\\.\\d+)?(\\.\\d+)?(-[A-Z|a-z]+(\\.\\d+)?)?").matcher(versionStr)
         if (!versionStr) throw new IllegalArgumentException("Version number not set")
         if (!versionMatcher.matches()) {
             throw new AbortException(
