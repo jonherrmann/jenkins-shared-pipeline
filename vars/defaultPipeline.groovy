@@ -134,7 +134,7 @@ def call(body) {
                 stage('publish on GitHub') {
                     if (env.DEPLOYMENT == 'GITHUB') {
                         echo "1"
-                        def releasedVersion = gitHubConnector.getLastReleaseOrInitialVersion()
+                        def releasedVersion = gitHubConnector.getLastTaggedVersionOrInitialVersion()
                         echo "2"
                         final String pattern = "**/build/libs/*${releasedVersion}.war **/build/libs/*${releasedVersion}.jar"
                         echo "3"
