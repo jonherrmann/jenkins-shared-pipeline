@@ -51,6 +51,7 @@ class SemVersionBuilder implements Serializable {
         return new SemVersion(major,minor,patch,label)
     }
 
+    @NonCPS
     SemVersion createInitialVersion() {
         return new SemVersion(0,0,1,"SNAPSHOT")
     }

@@ -33,6 +33,7 @@ class GitHubFacade implements Serializable {
 
         this.autoUpdateCommitMessagePattern = autoUpdateCommitMessagePattern
         this.rw = new GitHubRepository(githubLogin, githubPassword, githubOrganisationName, githubRepositoryName)
+        this.versionBuilder = new SemVersionBuilder()
     }
 
     @NonCPS
