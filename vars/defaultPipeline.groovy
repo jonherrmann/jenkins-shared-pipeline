@@ -133,13 +133,9 @@ def call(body) {
 
                 stage('publish on GitHub') {
                     if (env.DEPLOYMENT == 'GITHUB') {
-                        echo "1"
                         def releasedVersion = gitHubConnector.getLastTaggedVersionOrInitialVersion()
-                        echo "2"
                         final String pattern = "**/build/libs/*${releasedVersion}.war **/build/libs/*${releasedVersion}.jar"
-                        echo "3"
                         def files = new FileNameFinder().getFileNames(env.WORKSPACE, pattern)
-                        echo "4"
                         gitHubConnector.createDraftRelease(releasedVersion, files)
                         echo "Released version ${releasedVersion} at " +
                                 "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${releasedVersion}"

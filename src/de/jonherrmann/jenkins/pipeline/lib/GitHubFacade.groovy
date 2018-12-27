@@ -78,10 +78,12 @@ class GitHubFacade implements Serializable {
     @NonCPS
     SemVersion getLastTaggedVersionOrInitialVersion() {
         final String latestTagName = rw.repository?.listTags()?._iterator(1)?.next()?.name
-        try {
-            return new SemVersion(latestTagName)
-        }catch(ign) { }
-        return SemVersion.INITIAL_VERSION
+        if(latestTagName != null) {
+            try {
+                return new SemVersion(latestTagName)
+            }catch(AbortException | IllegalArgumentException e) { }
+        }
+        return new SemVersion(0,0,1,"SNAPSHOT")
     }
 
     /**
@@ -92,10 +94,12 @@ class GitHubFacade implements Serializable {
     @NonCPS
     SemVersion getLastReleaseOrInitialVersion() {
         final String latestReleaseName = rw.repository?.latestRelease?.tagName
-        try {
-            return new SemVersion(latestReleaseName)
-        }catch(ign) { }
-        return SemVersion.INITIAL_VERSION
+        if(latestReleaseName != null) {
+            try {
+                return new SemVersion(latestReleaseName)
+            }catch(AbortException | IllegalArgumentException e) { }
+        }
+        return new SemVersion(0,0,1,"SNAPSHOT")
     }
 
     @NonCPS

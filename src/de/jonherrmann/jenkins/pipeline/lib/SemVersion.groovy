@@ -13,8 +13,6 @@ enum VersionLevel {
  */
 class SemVersion implements Serializable {
 
-    final static INITIAL_VERSION = new SemVersion(0,0,1,"SNAPSHOT")
-
     /**
      * MAJRO.MINOR.BUGFIX.BUILD_VERSION-LABEL
      * where BUGFIX is optional,
@@ -121,5 +119,23 @@ class SemVersion implements Serializable {
             return "$major.$minor.$patch-$label"
         }
         return toStringWithoutLabel()
+    }
+
+    int compareTo(SemVersion other) {
+        if (major != other.major) {
+            return major - other.major
+        }
+        if (minor != other.minor) {
+            return minor - other.minor
+        }
+        if (patch != other.patch) {
+            return patch - other.patch
+        }
+        return label.toLowerCase() - other.label.toLowerCase()
+    }
+
+    boolean equals(Object other) {
+        return other instanceof SemVersion &&
+                compareTo((SemVersion) other) == 0
     }
 }
