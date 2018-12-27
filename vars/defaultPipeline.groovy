@@ -108,11 +108,11 @@ def call(body) {
                                 sh './gradlew uploadArchives'
                                 statusSubmitter.submitSuccess("Deployed")
                             } else {
-                                echo 'Snapshot deployment was skipped due to the previous automatic commit.'
+                                echo 'Snapshot deployment skipped due to the previous automatic commit.'
                                 statusSubmitter.submitSuccess(null)
                             }
                         } else {
-                            echo 'Snapshot deployment was skipped.'
+                            echo 'Snapshot deployment skipped.'
                         }
                     }
                 } else {
@@ -122,29 +122,32 @@ def call(body) {
                                 sh './gradlew release'
                                 statusSubmitter.submitSuccess("Released")
                             } else {
-                                echo 'The release was skipped due to the previous automatic commit.'
+                                echo 'Release skipped due to the previous automatic commit.'
                                 statusSubmitter.submitSuccess(null)
                             }
                         } else {
-                            echo 'Release was skipped.'
+                            echo 'Release skipped.'
                         }
                     }
                 }
 
                 stage('publish on GitHub') {
                     if (env.DEPLOYMENT == 'GITHUB') {
+                        echo "1"
                         def releasedVersion = gitHubConnector.getLastReleaseOrInitialVersion()
+                        echo "2"
                         final String pattern = "**/build/libs/*${releasedVersion}.war **/build/libs/*${releasedVersion}.jar"
+                        echo "3"
                         def files = new FileNameFinder().getFileNames(env.WORKSPACE, pattern)
-
+                        echo "4"
                         gitHubConnector.createDraftRelease(releasedVersion, files)
                         echo "Released version ${releasedVersion} at " +
                                 "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${releasedVersion}"
                     }else if (env.DEPLOYMENT == 'DRY-RUN') {
                         statusSubmitter.submitSuccess(null)
-                        echo 'Publishing was skipped.'
+                        echo 'Publishing skipped.'
                     }else {
-                        echo 'Publishing was skipped.'
+                        echo 'Publishing skipped.'
                     }
                 }
             } finally {
