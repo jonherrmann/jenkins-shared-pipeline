@@ -18,7 +18,6 @@ class GitHubCommitStatusSubmitter implements Serializable {
 		this.sha1 = sha1
 		this.context = context
 		this.url = url
-		updatePending("Initializing...")
 	}
 
 	void updatePending(final String description) {

@@ -27,13 +27,19 @@ class GitHubFacade implements Serializable {
             githubOrganisationName,
             githubRepositoryName,
             autoUpdateCommitMessagePattern) {
+
         assert autoUpdateCommitMessagePattern
+
         this.autoUpdateCommitMessagePattern = autoUpdateCommitMessagePattern
         this.rw = new GitHubRepository(githubLogin, githubPassword, githubOrganisationName, githubRepositoryName)
     }
 
+    @NonCPS
     GitHubCommitStatusSubmitter createCommitStatusSubmitter(String context, String url) {
-        return new GitHubCommitStatusSubmitter(rw, getLastCachedCommit().getSHA1(), context, url)
+        final GitHubCommitStatusSubmitter s =
+                new GitHubCommitStatusSubmitter(rw, getLastCachedCommit().getSHA1(), context, url)
+        s.updatePending("Initializing...")
+        return s
     }
 
     @NonCPS
@@ -49,6 +55,7 @@ class GitHubFacade implements Serializable {
      *
      * @return
      */
+    @NonCPS
     String getLastCommitMessage() {
         getLastCachedCommit()?.commitShortInfo?.message
     }
@@ -58,6 +65,7 @@ class GitHubFacade implements Serializable {
      *
      * @return true if auto commit message has been found
      */
+    @NonCPS
     boolean wasLastCommitInitiatedByUpdate() {
         autoUpdateCommitMessagePattern.matcher(getLastCommitMessage()).matches()
     }
@@ -67,6 +75,7 @@ class GitHubFacade implements Serializable {
      *
      * @return semantic version or an initial version placeholder
      */
+    @NonCPS
     SemVersion getLastTaggedVersionOrInitialVersion() {
         final String latestTagName = rw.repository?.listTags()?._iterator(1)?.next()?.name
         try {
@@ -80,6 +89,7 @@ class GitHubFacade implements Serializable {
      *
      * @return semantic version or an initial version placeholder
      */
+    @NonCPS
     SemVersion getLastReleaseOrInitialVersion() {
         final String latestReleaseName = rw.repository?.latestRelease?.tagName
         try {
@@ -88,6 +98,7 @@ class GitHubFacade implements Serializable {
         return SemVersion.INITIAL_VERSION
     }
 
+    @NonCPS
     SemVersion getLastVersionOrInitialVersion() {
         final SemVersion taggedVersion = getLastTaggedVersionOrInitialVersion()
         final SemVersion releaseVersion = getLastReleaseOrInitialVersion()
@@ -105,6 +116,7 @@ class GitHubFacade implements Serializable {
      * @param files to upload as key value map, where key is the file path
      *        and the mime type the value
      */
+    @NonCPS
     void createDraftRelease(final SemVersion version, String...files) {
         assert version != null
         final String versionStr = version.toStringWithoutLabel()
@@ -142,6 +154,7 @@ class GitHubFacade implements Serializable {
      * @param files to upload as key value map, where key is the file path
      *        and the mime type the value
      */
+    @NonCPS
     void attachDraftRelease(final SemVersion version, String...files) {
         assert version != null
         final String versionStr = version.toStringWithoutLabel()
