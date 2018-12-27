@@ -25,11 +25,13 @@ class SemVersionBuilder implements Serializable {
             throw new AbortException(
                     "Invalid version '$versionStr' format. The expected format is MAJOR.MINOR.PATCH .")
         }
+        int major
+        int minor
+        int patch
         try {
-            int major = Integer.parseInt(versionMatcher.group(1))
-            int minor = Integer.parseInt(versionMatcher.group(2))
+            major = Integer.parseInt(versionMatcher.group(1))
+            minor = Integer.parseInt(versionMatcher.group(2))
             final String bugfixStr = versionMatcher.group(3)
-            final int patch
             if (bugfixStr) {
                 patch = Integer.parseInt(bugfixStr.substring(1))
             }else{
@@ -39,7 +41,6 @@ class SemVersionBuilder implements Serializable {
             throw new AbortException(
                     "Invalid version '$versionStr' format. The expected format is MAJOR.MINOR.PATCH.")
         }
-
         final String label
         if (versionMatcher.group(5) != null) {
             final String labelStr = versionMatcher.group(5)
