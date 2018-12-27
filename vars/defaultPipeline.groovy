@@ -18,10 +18,10 @@ def call(body) {
     def buildType = namingConvention.buildType()
 
     if(env.RELEASE_VERSION) {
-        releaseVersion = toVersion(env.RELEASE_VERSION)
+        releaseVersion = new SemVersionBuilder().create(env.RELEASE_VERSION)
     }
     if(env.DEVELOPMENT_VERSION) {
-        devVersion = toVersion(env.DEVELOPMENT_VERSION)
+        devVersion = new SemVersionBuilder().create(env.DEVELOPMENT_VERSION)
         if(!devVersion.label) {
             throw new AbortException(
                     "Invalid development version '$env.DEVELOPMENT_VERSION'")
@@ -134,7 +134,12 @@ def call(body) {
 
                 stage('publish on GitHub') {
                     if (env.DEPLOYMENT == 'GITHUB') {
-                        releaseOnGitHub(pipelineParams, namingConvention, gitHubConnector)
+                        def releasedVersion = gitHubConnector.getLastTaggedVersionOrInitialVersion()
+                        final String pattern = "**/build/libs/*${releasedVersion}.war **/build/libs/*${releasedVersion}.jar"
+                        def files = new FileNameFinder().getFileNames(env.WORKSPACE, pattern)
+                        gitHubConnector.createDraftRelease(releasedVersion, files)
+                        echo "Released version ${releasedVersion} at " +
+                                "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${releasedVersion}"
                     }else if (env.DEPLOYMENT == 'DRY-RUN') {
                         statusSubmitter.submitSuccess(null)
                         echo 'Publishing skipped.'
@@ -147,19 +152,4 @@ def call(body) {
             }
         }
     }
-}
-
-@NonCPS
-def toVersion(String version) {
-    return new SemVersion(version)
-}
-
-@NonCPS
-def releaseOnGitHub(pipelineParams, namingConvention, gitHubConnector) {
-    def releasedVersion = gitHubConnector.getLastTaggedVersionOrInitialVersion()
-    final String pattern = "**/build/libs/*${releasedVersion}.war **/build/libs/*${releasedVersion}.jar"
-    def files = new FileNameFinder().getFileNames(env.WORKSPACE, pattern)
-    gitHubConnector.createDraftRelease(releasedVersion, files)
-    echo "Released version ${releasedVersion} at " +
-            "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${releasedVersion}"
 }
