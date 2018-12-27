@@ -14,6 +14,7 @@ class GitHubFacade implements Serializable {
     private final GitHubRepository rw
     private final Pattern autoUpdateCommitMessagePattern
     private transient GHCommit lastCommit
+    private final SemVersionBuilder versionBuilder
 
     GitHubFacade(githubLogin, githubPassword, githubOrganisationName, githubRepositoryName) {
         this(githubLogin, githubPassword,
@@ -80,10 +81,10 @@ class GitHubFacade implements Serializable {
         final String latestTagName = rw.repository?.listTags()?._iterator(1)?.next()?.name
         if(latestTagName != null) {
             try {
-                return new SemVersion(latestTagName)
+                return versionBuilder.create(latestTagName)
             }catch(AbortException | IllegalArgumentException e) { }
         }
-        return new SemVersion(0,0,1,"SNAPSHOT")
+        return versionBuilder.createInitialVersion()
     }
 
     /**
@@ -96,10 +97,10 @@ class GitHubFacade implements Serializable {
         final String latestReleaseName = rw.repository?.latestRelease?.tagName
         if(latestReleaseName != null) {
             try {
-                return new SemVersion(latestReleaseName)
+                return versionBuilder.create(latestReleaseName)
             }catch(AbortException | IllegalArgumentException e) { }
         }
-        return new SemVersion(0,0,1,"SNAPSHOT")
+        return versionBuilder.createInitialVersion()
     }
 
     @NonCPS
