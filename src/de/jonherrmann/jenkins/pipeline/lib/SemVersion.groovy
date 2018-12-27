@@ -1,5 +1,6 @@
 package de.jonherrmann.jenkins.pipeline.lib
 
+import com.cloudbees.groovy.cps.NonCPS
 import hudson.AbortException
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -72,6 +73,7 @@ class SemVersion implements Serializable {
         if (patch < 0) throw new IllegalArgumentException("Patch version number can not have a value less than 0.")
     }
 
+    @NonCPS
     SemVersion bump(VersionLevel patchLevel) {
         switch (patchLevel) {
             case VersionLevel.MAJOR:
@@ -94,6 +96,7 @@ class SemVersion implements Serializable {
         throw new IllegalArgumentException("Unknown Version Level")
     }
 
+    @NonCPS
     boolean isHigherThan(version) {
         if (!version) throw new IllegalArgumentException("The parameter 'version' can not be null.")
         return major > version.major || major == version.major &&
@@ -102,19 +105,23 @@ class SemVersion implements Serializable {
                             label == "" && version.label != ""))
     }
 
+    @NonCPS
     boolean isBackwardsCompatibleToo(version) {
         if (!version) throw new IllegalArgumentException("The parameter 'version' can not be null.")
         return this == version || major == version.major && this.minor <= version.minor
     }
 
+    @NonCPS
     boolean isReleaseVersion() {
         return label==""
     }
 
+    @NonCPS
     String toStringWithoutLabel() {
         return "$major.$minor.$patch"
     }
 
+    @NonCPS
     @Override
     String toString() {
         if (this.label) {
@@ -123,6 +130,7 @@ class SemVersion implements Serializable {
         return toStringWithoutLabel()
     }
 
+    @NonCPS
     int compareTo(SemVersion other) {
         if (major != other.major) {
             return major - other.major
@@ -136,6 +144,7 @@ class SemVersion implements Serializable {
         return label.toLowerCase() - other.label.toLowerCase()
     }
 
+    @NonCPS
     boolean equals(Object other) {
         return other instanceof SemVersion &&
                 compareTo((SemVersion) other) == 0
