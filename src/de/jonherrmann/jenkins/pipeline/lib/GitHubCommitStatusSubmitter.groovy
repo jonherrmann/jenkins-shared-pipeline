@@ -1,6 +1,8 @@
 package de.jonherrmann.jenkins.pipeline.lib
 
+import com.cloudbees.groovy.cps.NonCPS
 import org.kohsuke.github.GHCommitState
+import org.kohsuke.github.GHCommitStatus
 
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
@@ -20,11 +22,13 @@ class GitHubCommitStatusSubmitter implements Serializable {
 		this.url = url
 	}
 
+	@NonCPS
 	void updatePending(final String description) {
 		lastPendingStatus = description
 		rw.repository.createCommitStatus(sha1, GHCommitState.PENDING, url, description, context)
 	}
 
+	@NonCPS
 	void submitSuccess(final String description) {
 		if(!finalStatusSubmitted) {
 			finalStatusSubmitted = true
@@ -32,11 +36,13 @@ class GitHubCommitStatusSubmitter implements Serializable {
 		}
 	}
 
+	@NonCPS
 	void submitFailure(final String description) {
 		finalStatusSubmitted = true
 		rw.repository.createCommitStatus(sha1, GHCommitState.FAILURE, url, description, context)
 	}
 
+	@NonCPS
 	void destroy() {
 		if(!finalStatusSubmitted) {
 			rw.repository.createCommitStatus(sha1, GHCommitState.ERROR, url,
