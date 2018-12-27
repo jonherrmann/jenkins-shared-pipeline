@@ -103,41 +103,48 @@ def call(body) {
 
                 if (buildType != 'RELEASE') {
                     stage('upload archive ' + '[' + buildType + ']') {
-                        if (env.DEPLOYMENT != 'DRY-RUN') {
-                            if (!gitHubConnector.wasLastCommitInitiatedByUpdate() || env.DEPLOYMENT == 'FORCE') {
+                        if (env.DEPLOYMENT == 'ARTIFACTORY' || env.DEPLOYMENT == 'GITHUB') {
+                            if (!gitHubConnector.wasLastCommitInitiatedByUpdate() || env.DEPLOYMENT == 'FORCE-REDEPLOYMENT') {
                                 sh './gradlew uploadArchives'
                                 statusSubmitter.submitSuccess("Deployed")
                             } else {
                                 echo 'Snapshot deployment was skipped due to the previous automatic commit.'
+                                statusSubmitter.submitSuccess(null)
                             }
                         } else {
-                            echo 'Snapshot deployment was skipped due to DRY-RUN mode.'
+                            echo 'Snapshot deployment was skipped.'
                         }
                     }
                 } else {
                     stage('release') {
-                        if (env.DEPLOYMENT != 'DRY-RUN') {
-                            if (!gitHubConnector.wasLastCommitInitiatedByUpdate() || env.DEPLOYMENT == 'FORCE') {
+                        if (env.DEPLOYMENT == 'ARTIFACTORY' || env.DEPLOYMENT == 'GITHUB') {
+                            if (!gitHubConnector.wasLastCommitInitiatedByUpdate() || env.DEPLOYMENT == 'FORCE-REDEPLOYMENT') {
                                 sh './gradlew release'
                                 statusSubmitter.submitSuccess("Released")
                             } else {
                                 echo 'The release was skipped due to the previous automatic commit.'
+                                statusSubmitter.submitSuccess(null)
                             }
                         } else {
-                            echo 'Release was skipped due to DRY-RUN mode.'
+                            echo 'Release was skipped.'
                         }
                     }
                 }
 
-                statusSubmitter.submitSuccess(null)
-
-                if (env.DEPLOYMENT != 'DRY-RUN') {
-                    stage('publish on GitHub') {
+                stage('publish on GitHub') {
+                    if (env.DEPLOYMENT == 'GITHUB') {
                         def releasedVersion = gitHubConnector.getLastReleaseOrInitialVersion()
                         final String pattern = "**/build/libs/*${releasedVersion}.war **/build/libs/*${releasedVersion}.jar"
                         def files = new FileNameFinder().getFileNames(env.WORKSPACE, pattern)
 
                         gitHubConnector.createDraftRelease(releasedVersion, files)
+                        echo "Released version ${releasedVersion} at " +
+                                "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${releasedVersion}"
+                    }else if (env.DEPLOYMENT == 'DRY-RUN') {
+                        statusSubmitter.submitSuccess(null)
+                        echo 'Publishing was skipped.'
+                    }else {
+                        echo 'Publishing was skipped.'
                     }
                 }
             } finally {
