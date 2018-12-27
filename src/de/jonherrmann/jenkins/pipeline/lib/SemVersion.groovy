@@ -13,7 +13,7 @@ enum VersionLevel {
  */
 class SemVersion implements Serializable {
 
-    final static SemVersion INITIAL_VERSION = new SemVersion(0,0,1,"SNAPSHOT")
+    // final static SemVersion INITIAL_VERSION = new SemVersion(0,0,1,"SNAPSHOT")
 
     /**
      * MAJRO.MINOR.BUGFIX.BUILD_VERSION-LABEL
@@ -63,7 +63,7 @@ class SemVersion implements Serializable {
         this.major = major
         this.minor = minor
         this.patch = patch
-        this.label = label == "RELEASE" ? "" : label
+        this.label = label == null || label == "RELEASE" ? "" : label
     }
 
     void check() {
