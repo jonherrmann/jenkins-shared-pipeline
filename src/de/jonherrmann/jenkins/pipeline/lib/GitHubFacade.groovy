@@ -83,7 +83,7 @@ class GitHubFacade implements Serializable {
                 return new SemVersion(latestTagName)
             }catch(AbortException | IllegalArgumentException e) { }
         }
-        return new SemVersion(0,0,1,"SNAPSHOT")
+        return SemVersion.INITIAL_VERSION
     }
 
     /**
@@ -99,7 +99,7 @@ class GitHubFacade implements Serializable {
                 return new SemVersion(latestReleaseName)
             }catch(AbortException | IllegalArgumentException e) { }
         }
-        return new SemVersion(0,0,1,"SNAPSHOT")
+        return SemVersion.INITIAL_VERSION
     }
 
     @NonCPS

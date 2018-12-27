@@ -13,6 +13,8 @@ enum VersionLevel {
  */
 class SemVersion implements Serializable {
 
+    final static SemVersion INITIAL_VERSION = new SemVersion(0,0,1,"SNAPSHOT")
+
     /**
      * MAJRO.MINOR.BUGFIX.BUILD_VERSION-LABEL
      * where BUGFIX is optional,
