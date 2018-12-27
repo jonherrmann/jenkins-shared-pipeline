@@ -136,7 +136,7 @@ def call(body) {
                     if (env.DEPLOYMENT == 'GITHUB') {
                         def releasedVersion = gitHubConnector.getLastTaggedVersionOrInitialVersion()
                         final String pattern = "**/build/libs/*${releasedVersion}.war **/build/libs/*${releasedVersion}.jar"
-                        def files = new FileNameFinder().getFileNames(env.WORKSPACE, pattern)
+                        def files = new FileNameFinder().getFileNames( pwd() , pattern)
                         gitHubConnector.createDraftRelease(releasedVersion, files)
                         echo "Released version ${releasedVersion} at " +
                                 "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${releasedVersion}"
