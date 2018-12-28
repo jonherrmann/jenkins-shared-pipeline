@@ -138,7 +138,7 @@ def call(body) {
                         final SemVersion localVersion = new SemVersionBuilder().create(localVersionStr)
                         
                         final String pattern = "**/build/libs/*${localVersionStr}.war **/build/libs/*${localVersionStr}.jar"
-                        def fileWrappers = findFiles(glob: pattern)
+                        def fileWrappers = findFiles(glob: '**/*.jar')
                         echo fileWrappers[0].path
 
                         def files = fileWrappers.collect { f -> f.path }
