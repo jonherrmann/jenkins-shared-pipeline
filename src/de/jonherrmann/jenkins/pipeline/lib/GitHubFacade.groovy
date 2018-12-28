@@ -145,11 +145,11 @@ class GitHubFacade implements Serializable {
 
         if (files) {
             files.each{ file ->
-                echo "Uploading $file"
+                println "Uploading $file"
                 release.uploadAsset(new File(file), "application/zip")
             }
         }else{
-            echo "No files to upload"
+            println "No files to upload"
         }
     }
 
@@ -178,11 +178,11 @@ class GitHubFacade implements Serializable {
 
         if (files) {
             files.each{ file ->
-                echo "Uploading $file"
+                println "Uploading $file"
                 release.uploadAsset(new File(file), "application/zip")
             }
         }else{
-            echo "No files to upload"
+            println "No files to upload"
         }
     }
 
