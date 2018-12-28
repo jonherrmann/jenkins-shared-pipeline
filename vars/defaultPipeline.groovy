@@ -139,7 +139,7 @@ def call(body) {
                         
                         // final String pattern = "**/build/libs/*${localVersionStr}.war **/build/libs/*${localVersionStr}.jar"
                         final String pattern = "**/build/libs/*${localVersionStr}.jar"
-                        def fileWrappers = findFiles(glob: '**/*.jar')
+                        def fileWrappers = findFiles(glob: pattern)
                         echo fileWrappers[0].path
                         echo localVersionStr
 
