@@ -134,9 +134,16 @@ def call(body) {
 
                 stage('publish on GitHub') {
                     if (env.DEPLOYMENT == 'GITHUB') {
-                        def releasedVersion = gitHubConnector.getLastTaggedVersionOrInitialVersion()
-                        final String pattern = "**/build/libs/*${releasedVersion}.war **/build/libs/*${releasedVersion}.jar"
+                        final String localVersionStr = sh(returnStdout: true, script: './gradlew properties -q | grep "version:" | awk \'NR==1 {print $2}\'').trim()
+                        final SemVersion localVersion = new SemVersionBuilder().create(localVersionStr)
+                        final SemVersion releasedVersion = gitHubConnector.getLastTaggedVersionOrInitialVersion()
+                        if(releasedVersion.isHigherThan(localVersion)) {
+                            throw new AbortException("There is already a release with a higher version number ${releasedVersion}")
+                        }
+
+                        final String pattern = "**/build/libs/*${localVersion}.war **/build/libs/*${localVersion}.jar"
                         def fileWrappers = findFiles(glob: pattern)
+
                         def files = fileWrappers.collect { f -> f.path }
                         gitHubConnector.createDraftRelease(releasedVersion, files)
                         echo "Released version ${releasedVersion} at " +

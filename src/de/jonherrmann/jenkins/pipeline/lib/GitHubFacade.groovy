@@ -123,7 +123,7 @@ class GitHubFacade implements Serializable {
      *        and the mime type the value
      */
     @NonCPS
-    void createDraftRelease(final SemVersion version, String...files) {
+    void createDraftRelease(final SemVersion version, def files) {
         assert version != null
         final String versionStr = version.toStringWithoutLabel()
         final SemVersion latestVersion = getLastVersionOrInitialVersion()
@@ -161,7 +161,7 @@ class GitHubFacade implements Serializable {
      *        and the mime type the value
      */
     @NonCPS
-    void attachDraftRelease(final SemVersion version, String...files) {
+    void attachDraftRelease(final SemVersion version, def files) {
         assert version != null
         final String versionStr = version.toStringWithoutLabel()
         final GHRelease release = rw.repository.getReleaseByTagName(versionStr)
