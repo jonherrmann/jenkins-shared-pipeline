@@ -136,18 +136,14 @@ def call(body) {
                     if (env.DEPLOYMENT == 'GITHUB') {
                         final String localVersionStr = sh(returnStdout: true, script: './gradlew properties -q | grep "version:" | awk \'NR==1 {print $2}\'').trim()
                         final SemVersion localVersion = new SemVersionBuilder().create(localVersionStr)
-                        final SemVersion releasedVersion = gitHubConnector.getLastTaggedVersionOrInitialVersion()
-                        if(releasedVersion.isHigherThan(localVersion)) {
-                            throw new AbortException("There is already a release with a higher version number ${releasedVersion}")
-                        }
-
+                        
                         final String pattern = "**/build/libs/*${localVersion}.war **/build/libs/*${localVersion}.jar"
                         def fileWrappers = findFiles(glob: pattern)
 
                         def files = fileWrappers.collect { f -> f.path }
-                        gitHubConnector.createDraftRelease(releasedVersion, files)
-                        echo "Released version ${releasedVersion} at " +
-                                "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${releasedVersion}"
+                        gitHubConnector.createDraftRelease(localVersion, files)
+                        echo "Released version ${localVersion} at " +
+                                "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${localVersion}"
                     }else if (env.DEPLOYMENT == 'DRY-RUN') {
                         statusSubmitter.submitSuccess(null)
                         echo 'Publishing skipped.'
