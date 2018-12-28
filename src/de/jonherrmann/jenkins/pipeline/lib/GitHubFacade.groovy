@@ -140,7 +140,7 @@ class GitHubFacade implements Serializable {
                 .name(versionStr+" release"+ (!version.isReleaseVersion() ? " candidate" : ""))
                 .draft(true)
                 .prerelease(!version.isReleaseVersion())
-                .body("This release has been automatically created")
+                .body("This release has been created automatically")
                 .create()
 
         if (files) {
@@ -173,7 +173,7 @@ class GitHubFacade implements Serializable {
                 .name(versionStr+" release"+ (!version.isReleaseVersion() ? " candidate" : ""))
                 .draft(true)
                 .prerelease(!version.isReleaseVersion())
-                .body("This release has been automatically created")
+                .body("This release has been created automatically")
                 .update()
 
         if (files) {
