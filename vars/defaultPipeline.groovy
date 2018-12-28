@@ -137,9 +137,11 @@ def call(body) {
                         final String localVersionStr = sh(returnStdout: true, script: './gradlew properties -q | grep "version:" | awk \'NR==1 {print $2}\'').trim()
                         final SemVersion localVersion = new SemVersionBuilder().create(localVersionStr)
                         
-                        final String pattern = "**/build/libs/*${localVersionStr}.war **/build/libs/*${localVersionStr}.jar"
+                        // final String pattern = "**/build/libs/*${localVersionStr}.war **/build/libs/*${localVersionStr}.jar"
+                        final String pattern = "**/build/libs/*${localVersionStr}.jar"
                         def fileWrappers = findFiles(glob: '**/*.jar')
                         echo fileWrappers[0].path
+                        echo localVersionStr
 
                         def files = fileWrappers.collect { f -> f.path }
                         gitHubConnector.createDraftRelease(localVersion, files)
