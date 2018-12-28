@@ -149,7 +149,7 @@ class GitHubFacade implements Serializable {
                 release.uploadAsset(new File(file), "application/zip")
             }
         }else{
-            println "No files to upload"
+            echo "No files to upload"
         }
     }
 
@@ -182,7 +182,7 @@ class GitHubFacade implements Serializable {
                 release.uploadAsset(new File(file), "application/zip")
             }
         }else{
-            println "No files to upload"
+            echo "No files to upload"
         }
     }
 
