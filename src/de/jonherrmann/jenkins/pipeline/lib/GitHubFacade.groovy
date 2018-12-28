@@ -145,7 +145,7 @@ class GitHubFacade implements Serializable {
 
         if (files) {
             files.each{ file ->
-                println "Uploading $file"
+                echo "Uploading $file"
                 release.uploadAsset(new File(file), "application/zip")
             }
         }else{
@@ -178,7 +178,7 @@ class GitHubFacade implements Serializable {
 
         if (files) {
             files.each{ file ->
-                println "Uploading $file"
+                echo "Uploading $file"
                 release.uploadAsset(new File(file), "application/zip")
             }
         }else{
