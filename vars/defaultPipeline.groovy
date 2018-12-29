@@ -146,7 +146,7 @@ def call(body) {
                         echo "Released version ${localVersion} at " +
                                 "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${localVersion}"
                     }else if (env.DEPLOYMENT == 'DRY-RUN') {
-                        statusSubmitter.submitSuccess(null)
+                        statusSubmitter.submitSuccess("dry run OK")
                         echo 'Publishing skipped.'
                     }else {
                         echo 'Publishing skipped.'
