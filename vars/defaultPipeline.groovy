@@ -136,14 +136,12 @@ def call(body) {
                     if (env.DEPLOYMENT == 'GITHUB') {
                         final String localVersionStr = sh(returnStdout: true, script: './gradlew properties -q | grep "version:" | awk \'NR==1 {print $2}\'').trim()
                         final SemVersion localVersion = new SemVersionBuilder().create(localVersionStr)
-                        
-                        // final String pattern = "**/build/libs/*${localVersionStr}.war **/build/libs/*${localVersionStr}.jar"
-                        final String pattern = "**/build/libs/*${localVersionStr}.jar"
-                        def fileWrappers = findFiles(glob: pattern)
-                        echo fileWrappers[0].path
-                        echo localVersionStr
+                        def pattern = "**/build/libs/*${localVersionStr}.war, **/build/libs/*${localVersionStr}.jar"
+                        archiveArtifacts pattern
 
-                        def files = fileWrappers.collect { f -> f.path }
+                        def path = "${env.JENKINS_HOME}/jobs/${jobDirectory(env.JOB_NAME)}/builds/${env.BUILD_NUMBER}/archive"
+                        def files = new FileNameFinder().getFileNames(path, pattern)
+
                         gitHubConnector.createDraftRelease(localVersion, files)
                         echo "Released version ${localVersion} at " +
                                 "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${localVersion}"
@@ -159,4 +157,8 @@ def call(body) {
             }
         }
     }
+}
+
+String jobDirectory(String jobName) {
+    return jobName.replace('/','/jobs/')
 }
