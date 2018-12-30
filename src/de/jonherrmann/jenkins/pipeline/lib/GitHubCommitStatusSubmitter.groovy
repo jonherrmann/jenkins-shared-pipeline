@@ -2,7 +2,6 @@ package de.jonherrmann.jenkins.pipeline.lib
 
 import com.cloudbees.groovy.cps.NonCPS
 import org.kohsuke.github.GHCommitState
-import org.kohsuke.github.GHCommitStatus
 
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )

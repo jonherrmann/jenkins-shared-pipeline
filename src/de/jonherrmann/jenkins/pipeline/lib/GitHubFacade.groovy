@@ -13,7 +13,6 @@ class GitHubFacade implements Serializable {
 
     private final GitHubRepository rw
     private final Pattern autoUpdateCommitMessagePattern
-    private transient GHCommit lastCommit
     private final SemVersionBuilder versionBuilder
 
     GitHubFacade(githubLogin, githubPassword, githubOrganisationName, githubRepositoryName) {
@@ -39,17 +38,14 @@ class GitHubFacade implements Serializable {
     @NonCPS
     GitHubCommitStatusSubmitter createCommitStatusSubmitter(String context, String url) {
         final GitHubCommitStatusSubmitter s =
-                new GitHubCommitStatusSubmitter(rw, getLastCachedCommit().getSHA1(), context, url)
+                new GitHubCommitStatusSubmitter(rw, getLastCommit().getSHA1(), context, url)
         s.updatePending("Initializing...")
         return s
     }
 
     @NonCPS
-    GHCommit getLastCachedCommit() {
-        if(lastCommit == null) {
-            lastCommit = rw.repository?.listCommits()?._iterator(1)?.next()
-        }
-        return lastCommit
+    GHCommit getLastCommit() {
+        return rw.repository?.listCommits()?._iterator(1)?.next()
     }
 
     /**
@@ -59,7 +55,7 @@ class GitHubFacade implements Serializable {
      */
     @NonCPS
     String getLastCommitMessage() {
-        getLastCachedCommit()?.commitShortInfo?.message
+        getLastCommit()?.commitShortInfo?.message
     }
 
     /**
