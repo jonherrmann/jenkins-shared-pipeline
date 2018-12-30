@@ -43,7 +43,7 @@ def call(body) {
 
     final GitHubFacade gitHubConnector
     withCredentials([usernamePassword(credentialsId: pipelineParams.gitCredentialsId, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-        gitHubConnector = new GitHubFacade(env.USERNAME, env.PASSWORD, pipelineParams.githubOrganisation, namingConvention.projectName())
+        gitHubConnector = new GitHubFacade(env.USERNAME, env.PASSWORD, checkOutBranches, pipelineParams.githubOrganisation, namingConvention.projectName())
     }
 
     final GitHubCommitStatusSubmitter statusSubmitter = gitHubConnector.createCommitStatusSubmitter(

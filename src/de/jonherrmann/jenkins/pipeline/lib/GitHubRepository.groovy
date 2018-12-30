@@ -1,6 +1,7 @@
 package de.jonherrmann.jenkins.pipeline.lib
 
 import com.cloudbees.groovy.cps.NonCPS
+import org.kohsuke.github.GHCommitQueryBuilder
 import org.kohsuke.github.GHRepository
 import org.kohsuke.github.GitHub
 
@@ -13,10 +14,14 @@ class GitHubRepository implements Serializable {
     private final String githubPassword
     private final String githubOrganisationName
     private final String githubRepositoryName
+    final String branch
 
-    GitHubRepository(String githubLogin, String githubPassword, String githubOrganisationName, String githubRepositoryName) {
+    GitHubRepository(String githubLogin, String githubPassword,
+                     String branch,
+                     String githubOrganisationName, String githubRepositoryName) {
         this.githubLogin = githubLogin
         this.githubPassword = githubPassword
+        this.branch = branch ? branch : 'master'
         this.githubOrganisationName = githubOrganisationName
         this.githubRepositoryName = githubRepositoryName
 
@@ -37,5 +42,9 @@ class GitHubRepository implements Serializable {
             this.r = github.getRepository(githubOrganisationName+"/"+githubRepositoryName)
         }
         return this.r
+    }
+
+    GHCommitQueryBuilder queryCommits() {
+        return getRepository().queryCommits().from(branch)
     }
 }

@@ -13,10 +13,11 @@ class GitHubFacade implements Serializable {
 
     private final GitHubRepository rw
     private final Pattern autoUpdateCommitMessagePattern
+    private transient GHCommit lastCommit
     private final SemVersionBuilder versionBuilder
 
-    GitHubFacade(githubLogin, githubPassword, githubOrganisationName, githubRepositoryName) {
-        this(githubLogin, githubPassword,
+    GitHubFacade(githubLogin, githubPassword, branch, githubOrganisationName, githubRepositoryName) {
+        this(githubLogin, githubPassword, branch,
                 githubOrganisationName, githubRepositoryName,
                 (~':arrow_up: New working version .*'))
     }
@@ -24,6 +25,7 @@ class GitHubFacade implements Serializable {
     GitHubFacade(
             githubLogin,
             githubPassword,
+            branch,
             githubOrganisationName,
             githubRepositoryName,
             autoUpdateCommitMessagePattern) {
@@ -31,21 +33,24 @@ class GitHubFacade implements Serializable {
         assert autoUpdateCommitMessagePattern
 
         this.autoUpdateCommitMessagePattern = autoUpdateCommitMessagePattern
-        this.rw = new GitHubRepository(githubLogin, githubPassword, githubOrganisationName, githubRepositoryName)
+        this.rw = new GitHubRepository(githubLogin, githubPassword, branch, githubOrganisationName, githubRepositoryName)
         this.versionBuilder = new SemVersionBuilder()
     }
 
     @NonCPS
     GitHubCommitStatusSubmitter createCommitStatusSubmitter(String context, String url) {
         final GitHubCommitStatusSubmitter s =
-                new GitHubCommitStatusSubmitter(rw, getLastCommit().getSHA1(), context, url)
+                new GitHubCommitStatusSubmitter(rw, getLastCachedCommit().getSHA1(), context, url)
         s.updatePending("Initializing...")
         return s
     }
 
     @NonCPS
-    GHCommit getLastCommit() {
-        return rw.repository?.listCommits()?._iterator(1)?.next()
+    GHCommit getLastCachedCommit() {
+        if(lastCommit == null) {
+            lastCommit = rw.queryCommits().pageSize(1).list().iterator().next()
+        }
+        return lastCommit
     }
 
     /**
@@ -55,7 +60,7 @@ class GitHubFacade implements Serializable {
      */
     @NonCPS
     String getLastCommitMessage() {
-        getLastCommit()?.commitShortInfo?.message
+        getLastCachedCommit()?.commitShortInfo?.message
     }
 
     /**
