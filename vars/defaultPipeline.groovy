@@ -51,6 +51,9 @@ def call(body) {
 
     final String gitRepoUrl = 'https://github.com/' + pipelineParams.githubOrganisation + '/' + namingConvention.projectName()
 
+    def artifactPattern
+    def artifactLocalVersion
+
     timestamps {
         node() {
             try {
@@ -94,6 +97,12 @@ def call(body) {
                     }
                 }
 
+                stage('archive') {
+                    final String localVersionStr = sh(returnStdout: true, script: './gradlew properties -q | grep "version:" | awk \'NR==1 {print $2}\'').trim()
+                    artifactLocalVersion = new SemVersionBuilder().create(localVersionStr)
+                    artifactPattern = "**/build/libs/*${localVersionStr}.war, **/build/libs/*${localVersionStr}.jar"
+                    archiveArtifacts artifactPattern
+                }
 
                 stage('analyse with SonarQube') {
                     if (pipelineParams.runSonar == true && env.DEPLOYMENT != 'DRY-RUN' && (buildType == 'RELEASE' || buildType == 'SNAPSHOT')) {
@@ -138,19 +147,14 @@ def call(body) {
 
                 stage('publish on GitHub') {
                     if (env.DEPLOYMENT == 'GITHUB') {
-                        final String localVersionStr = sh(returnStdout: true, script: './gradlew properties -q | grep "version:" | awk \'NR==1 {print $2}\'').trim()
-                        final SemVersion localVersion = new SemVersionBuilder().create(localVersionStr)
-                        def pattern = "**/build/libs/*${localVersionStr}.war, **/build/libs/*${localVersionStr}.jar"
-                        archiveArtifacts pattern
-
                         def path = "${env.JENKINS_HOME}/jobs/${jobDirectory(env.JOB_NAME)}/builds/${env.BUILD_NUMBER}/archive"
-                        def files = new FileNameFinder().getFileNames(path, pattern)
+                        def files = new FileNameFinder().getFileNames(path, artifactPattern)
 
-                        gitHubConnector.createDraftRelease(localVersion, files)
-                        echo "Released version ${localVersion} at " +
-                                "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${localVersion}"
+                        gitHubConnector.createDraftRelease(artifactLocalVersion, files)
+                        echo "Draft release version ${artifactLocalVersion} at " +
+                                "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${artifactLocalVersion}"
                     }else if (env.DEPLOYMENT == 'DRY-RUN') {
-                        statusSubmitter.submitSuccess("dry run OK")
+                        statusSubmitter.submitSuccess("dry run ok")
                         echo 'Publishing skipped.'
                     }else {
                         echo 'Publishing skipped.'
