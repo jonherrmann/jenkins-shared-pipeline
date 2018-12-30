@@ -68,7 +68,11 @@ def call(body) {
                 }
 
                 stage('build') {
-                    sh './gradlew init'
+                    if (buildType == 'RELEASE') {
+                        sh './gradlew --refresh-dependencies init'
+                    }else{
+                        sh './gradlew init'
+                    }
                     sh './gradlew clean'
                     statusSubmitter.updatePending("Building...")
                     try {
