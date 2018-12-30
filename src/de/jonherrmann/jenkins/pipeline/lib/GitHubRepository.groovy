@@ -44,6 +44,7 @@ class GitHubRepository implements Serializable {
         return this.r
     }
 
+    @NonCPS
     GHCommitQueryBuilder queryCommits() {
         return getRepository().queryCommits().from(branch)
     }
