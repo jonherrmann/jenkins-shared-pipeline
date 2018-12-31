@@ -40,7 +40,7 @@ class GitHubFacade implements Serializable {
     @NonCPS
     GitHubCommitStatusSubmitter createCommitStatusSubmitter(String context, String url) {
         final GitHubCommitStatusSubmitter s =
-                new GitHubCommitStatusSubmitter(rw, getLastCachedCommit().getSHA1(), context, url)
+                new GitHubCommitStatusSubmitter(rw, getLastCachedCommit()?.getSHA1(), context, url)
         s.updatePending("Initializing...")
         return s
     }
@@ -48,7 +48,7 @@ class GitHubFacade implements Serializable {
     @NonCPS
     GHCommit getLastCachedCommit() {
         if(lastCommit == null) {
-            lastCommit = rw.queryCommits().pageSize(1).list().iterator().next()
+            lastCommit = rw?.queryCommits()?.pageSize(1)?.list()?.iterator()?.next()
         }
         return lastCommit
     }
