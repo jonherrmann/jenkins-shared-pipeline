@@ -147,7 +147,7 @@ def call(body) {
                                 if(latestVersion.equals(artifactLocalVersion)) {
                                     echo "There is already a release '$latestVersion' with the same version number."
                                     statusSubmitter.submitFailure("check version")
-                                }else if(artifactLocalVersion.isHigherThan(latestVersion)) {
+                                }else if(latestVersion.isHigherThan(artifactLocalVersion)) {
                                     echo "There is already a release '$latestVersion' with a higher version number."
                                     statusSubmitter.submitFailure("check version")
                                 }else{
