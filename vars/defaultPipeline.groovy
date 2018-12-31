@@ -142,7 +142,7 @@ def call(body) {
                         } else {
                             // DRY-RUN
                             echo 'Release skipped.'
-                            if(gitHubConnector.wasLastCommitInitiatedByUpdate()) {
+                            if(!gitHubConnector.wasLastCommitInitiatedByUpdate()) {
                                 def latestVersion = gitHubConnector.getLastVersionOrInitialVersion()
                                 if(latestVersion.equals(artifactLocalVersion)) {
                                     echo "There is already a release '$latestVersion' with the same version number."
