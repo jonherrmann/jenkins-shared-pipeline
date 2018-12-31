@@ -80,7 +80,13 @@ class GitHubFacade implements Serializable {
      */
     @NonCPS
     SemVersion getLastTaggedVersionOrInitialVersion() {
-        final String latestTagName = rw.repository?.listTags()?._iterator(1)?.next()?.name
+        def it = rw.repository?.listTags()?._iterator(1)
+        final String latestTagName
+        if(it.hasNext()) {
+            latestTagName = it?.next()?.name
+        } else{
+            latestTagName = null
+        }
         if(latestTagName != null) {
             try {
                 return versionBuilder.create(latestTagName)
