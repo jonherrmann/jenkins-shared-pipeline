@@ -92,7 +92,7 @@ class SemVersion implements Serializable {
         if (patch != other.patch) {
             return patch - other.patch
         }
-        return label.toLowerCase() - other.label.toLowerCase()
+        return label.toLowerCase() <=> other.label.toLowerCase()
     }
 
     @NonCPS

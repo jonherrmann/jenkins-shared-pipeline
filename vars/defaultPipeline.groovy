@@ -140,7 +140,24 @@ def call(body) {
                                 statusSubmitter.submitSuccess(null)
                             }
                         } else {
+                            // DRY-RUN
                             echo 'Release skipped.'
+                            if(gitHubConnector.wasLastCommitInitiatedByUpdate()) {
+                                def latestVersion = gitHubConnector.getLastVersionOrInitialVersion()
+                                if(latestVersion.equals(artifactLocalVersion)) {
+                                    echo "There is already a release '$latestVersion' with the same version number."
+                                    statusSubmitter.submitFailure("check version")
+                                }else if(artifactLocalVersion.isHigherThan(latestVersion)) {
+                                    echo "There is already a release '$latestVersion' with a higher version number."
+                                    statusSubmitter.submitFailure("check version")
+                                }else{
+                                    echo 'Versions OK'
+                                    statusSubmitter.submitSuccess("dry run ok")
+                                }
+                            }else{
+                                echo 'Version check skipped due to the previous automatic commit.'
+                                statusSubmitter.submitSuccess("dry run ok")
+                            }
                         }
                     }
                 }
@@ -153,9 +170,6 @@ def call(body) {
                         gitHubConnector.createDraftRelease(artifactLocalVersion, files)
                         echo "Draft release version ${artifactLocalVersion} at " +
                                 "https://github.com/${pipelineParams.githubOrganisation}/${namingConvention.projectName()}/releases/${artifactLocalVersion}"
-                    }else if (env.DEPLOYMENT == 'DRY-RUN') {
-                        statusSubmitter.submitSuccess("dry run ok")
-                        echo 'Publishing skipped.'
                     }else {
                         echo 'Publishing skipped.'
                     }
