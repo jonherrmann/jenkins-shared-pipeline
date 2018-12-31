@@ -132,11 +132,6 @@ class GitHubFacade implements Serializable {
             throw new AbortException(
                     "There is already a release '$latestVersion' with a higher version number.")
         }
-        if(versionStr==latestVersion.toString()) {
-            throw new AbortException(
-                    "There is already a release '$latestVersion' with the same version number.")
-        }
-
         final GHRelease release = rw.repository.createRelease(versionStr)
                 .name(versionStr+" release"+ (!version.isReleaseVersion() ? " candidate" : ""))
                 .draft(true)
