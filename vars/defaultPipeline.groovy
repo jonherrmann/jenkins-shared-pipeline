@@ -123,10 +123,11 @@ def call(body) {
                                 statusSubmitter.submitSuccess("Deployed")
                             } else {
                                 echo 'Snapshot deployment skipped due to the previous automatic commit.'
-                                statusSubmitter.submitSuccess(null)
+                                statusSubmitter.submitSuccess("dry run ok")
                             }
                         } else {
                             echo 'Snapshot deployment skipped.'
+                            statusSubmitter.submitSuccess("dry run ok")
                         }
                     }
                 } else {
