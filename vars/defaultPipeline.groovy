@@ -71,7 +71,7 @@ def call(body) {
                 }
 
                 stage('build') {
-                    if (buildType == 'RELEASE') {
+                    if (buildType == 'RELEASE' || pipelineParams.forceRefreshDependencies) {
                         sh './gradlew --refresh-dependencies init'
                     }else{
                         sh './gradlew init'
