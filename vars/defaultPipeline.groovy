@@ -83,6 +83,8 @@ def call(body) {
                     }catch(e) {
                         statusSubmitter.submitFailure("Build failed")
                     }
+                    sh './gradlew -q dependencies > build-dependencies.txt'
+                    archiveArtifacts 'build-dependencies.txt'
                 }
 
                 stage('test') {
