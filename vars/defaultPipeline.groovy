@@ -79,7 +79,11 @@ def call(body) {
                     sh './gradlew clean'
                     statusSubmitter.updatePending("Building...")
                     try {
-                        sh './gradlew assemble'
+                        if (buildType == 'RELEASE' || pipelineParams.forceRefreshDependencies) {
+                            sh './gradlew --refresh-dependencies build'
+                        }else{
+                            sh './gradlew assemble'
+                        }
                     }catch(e) {
                         statusSubmitter.submitFailure("Build failed")
                     }
