@@ -98,8 +98,10 @@ def call(body) {
                     }catch(e) {
                         statusSubmitter.submitFailure("Testing failed")
                     } finally {
-                        junit '**/build/test-results/test/**.xml'
-                        archiveArtifacts '**/build/test-results/test/**'
+                        if(!pipelineParams.skipArchivingTests) {
+                            junit '**/build/test-results/test/**.xml'
+                            archiveArtifacts '**/build/test-results/test/**'
+                        }
                     }
                 }
 
