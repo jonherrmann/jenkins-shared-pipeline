@@ -108,7 +108,7 @@ def call(body) {
                 stage('archive') {
                     final String localVersionStr = sh(returnStdout: true, script: './gradlew properties -q | grep "version:" | awk \'NR==1 {print $2}\'').trim()
                     artifactLocalVersion = new SemVersionBuilder().create(localVersionStr)
-                    artifactPattern = "**/build/libs/*${localVersionStr}.war, **/build/libs/*${localVersionStr}.jar, **/build/libs/*${localVersionStr}-plugin.jar, **/build/libs/*${localVersionStr}.xar"
+                    artifactPattern = "**/build/libs/*.war, **/build/libs/*${localVersionStr}.war, **/build/libs/*${localVersionStr}.jar, **/build/libs/*${localVersionStr}-plugin.jar, **/build/libs/*${localVersionStr}.xar"
                     archiveArtifacts artifactPattern
                 }
 
