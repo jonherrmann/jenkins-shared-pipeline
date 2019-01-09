@@ -36,9 +36,9 @@ def call(body) {
         checkOutBranches = 'next'
         remBranches = [[name: '*/next']]
         if (buildType != 'SNAPSHOT') {
-            env.AF_INT_ENV = buildType
-            env.FORCE_VERSION_TYPE = 'SNAPSHOT'
+            env.AF_INT_ENV = buildType.toLowerCase()
         }
+        env.FORCE_VERSION_TYPE = 'SNAPSHOT'
     }
 
     final GitHubFacade gitHubConnector
