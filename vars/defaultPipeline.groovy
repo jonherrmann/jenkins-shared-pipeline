@@ -94,13 +94,15 @@ def call(body) {
                 stage('test') {
                     statusSubmitter.updatePending("Testing...")
                     try {
-                        sh './gradlew build test'
+                        sh './gradlew build check'
                     }catch(e) {
                         statusSubmitter.submitFailure("Testing failed")
                     } finally {
                         if(!pipelineParams.skipArchivingTests) {
-                            junit '**/build/test-results/test/**.xml'
-                            archiveArtifacts '**/build/test-results/test/**'
+                            // support old and new junit directory
+                            def resultPattern = "**/build/test-results/test/**.xml, **/build/test-results/junit-platform/**.xml"
+                            junit resultPattern
+                            archiveArtifacts '**/build/test-results/**'
                         }
                     }
                 }
